@@ -3,15 +3,16 @@
 Este projeto consiste em um sistema de inventário para coletar e exibir informações de sistemas Linux. A aplicação é composta por dois componentes principais: um agente de inventário (`inventory-agent.py`) que coleta informações do sistema e as envia para um servidor, e um servidor web (`app.py`) que recebe esses dados, os armazena em um banco de dados e os exibe através de uma interface web.
 
 ## Estrutura de Diretórios
-.
-├── app.py
-├── instance
-│ └── system_info.db
-├── inventory-agent.py
-└── templates
-├── details.html
-└── index.html
-
+```md
+inventory-lab
+    ├── app.py
+    ├── instance
+    │ └── system_info.db
+    ├── inventory-agent.py
+    └── templates
+    ├── details.html
+    └── index.html
+```
 
 ### Descrição dos Arquivos
 
