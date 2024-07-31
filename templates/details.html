@@ -143,6 +143,36 @@
             </tbody>
         </table>
 
+        <h3 class="my-4 text-center">Informações da GPU</h3>
+        <!-- Tabela para exibir informações da GPU -->
+        <table class="table table-bordered table-striped text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Versão do Driver</th>
+                    <th>Memória Total (MB)</th>
+                    <th>Memória Livre (MB)</th>
+                    <th>Memória Usada (MB)</th>
+                    <th>Temperatura (°C)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Laço para preencher a tabela com as informações da GPU -->
+                {% for entry in system_info.gpu_info %}
+                <tr>
+                    <td>{{ entry.gpu_id }}</td>
+                    <td>{{ entry.name }}</td>
+                    <td>{{ entry.driver_version }}</td>
+                    <td>{{ entry.memory_total }}</td>
+                    <td>{{ entry.memory_free }}</td>
+                    <td>{{ entry.memory_used }}</td>
+                    <td>{{ entry.temperature }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
         <!-- Botão para voltar ao índice -->
         <a class="btn btn-primary" href="{{ url_for('index') }}">Voltar ao Índice</a>
     </div>

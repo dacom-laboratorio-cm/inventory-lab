@@ -32,6 +32,7 @@ class SystemInfo(db.Model):
     ip_and_mac_addresses = db.relationship('IPAndMacAddress', backref='system_info', lazy=True)
     mounted_filesystems = db.relationship('MountedFilesystems', backref='system_info', lazy=True)
     disk_info = db.relationship('DiskInfo', backref='system_info', uselist=False)
+    gpu_info = db.relationship('GPUInfo', backref='system_info', lazy=True)
 
 class UserLoginHistory(db.Model):
     """
@@ -75,6 +76,21 @@ class DiskInfo(db.Model):
     total = db.Column(db.Float, nullable=False)
     free = db.Column(db.Float, nullable=False)
     system_info_id = db.Column(db.Integer, db.ForeignKey('system_info.id'), nullable=False)
+
+class GPUInfo(db.Model):
+    """
+    Model para armazenar informações da placa de vídeo.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    gpu_id = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.String(120), nullable=False)
+    driver_version = db.Column(db.String(120), nullable=False)
+    memory_total = db.Column(db.Float, nullable=False)
+    memory_free = db.Column(db.Float, nullable=False)
+    memory_used = db.Column(db.Float, nullable=False)
+    temperature = db.Column(db.Float, nullable=False)
+    system_info_id = db.Column(db.Integer, db.ForeignKey('system_info.id'), nullable=False)
+
 
 def create_tables():
     """
@@ -129,6 +145,7 @@ def upload():
     ip_and_mac_addresses = data.get('ip_and_mac_addresses', [])
     mounted_filesystems = data.get('mounted_filesystems', [])
     disk_info = data.get('disk_info', {})
+    gpu_info = data.get('gpu_info', [])
 
     for entry in user_login_history:
         login_history = UserLoginHistory(
@@ -163,11 +180,24 @@ def upload():
 
     if disk_info:
         disk = DiskInfo(
-            total=disk_info['total'],
-            free=disk_info['free'],
+            total=disk_info.get('total'),
+            free=disk_info.get('free'),
             system_info_id=system_info.id
         )
         db.session.add(disk)
+
+    for entry in gpu_info:
+        gpu = GPUInfo(
+            gpu_id=entry['gpu_id'],  # Corrigido para corresponder ao nome do campo no modelo
+            name=entry['name'],
+            driver_version=entry['driver_version'],
+            memory_total=entry['memory_total'],
+            memory_free=entry['memory_free'],
+            memory_used=entry['memory_used'],
+            temperature=entry['temperature'],
+            system_info_id=system_info.id
+        )
+        db.session.add(gpu)
 
     try:
         db.session.commit()
