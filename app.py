@@ -26,6 +26,7 @@ class SystemInfo(db.Model):
     memory_total_gb = db.Column(db.Float, nullable=False)
     uuid1 = db.Column(db.String(36), unique=True, nullable=False)
     collection_datetime = db.Column(db.String(120), nullable=False)
+    motherboard_model = db.Column(db.String(255))
 
     # Relacionamentos
     user_login_history = db.relationship('UserLoginHistory', backref='system_info', lazy=True)
@@ -134,7 +135,8 @@ def upload():
         cpu_model=data.get('cpu_model'),
         memory_total_gb=data.get('memory_total_gb'),
         uuid1=data.get('uuid1'),
-        collection_datetime=data.get('collection_datetime')
+        collection_datetime=data.get('collection_datetime'),
+        motherboard_model=data['motherboard_model']
     )
     
     db.session.add(system_info)

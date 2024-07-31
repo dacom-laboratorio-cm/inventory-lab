@@ -123,6 +123,19 @@ def get_gpu_info():
 
     return gpu_info
 
+def get_motherboard_model():
+    """
+    Retorna o modelo da placa-mãe a partir de arquivos do sistema.
+    """
+    try:
+        with open('/sys/class/dmi/id/board_name', 'r') as file:
+            return file.read().strip()
+    except FileNotFoundError:
+        return 'Unknown'
+    except Exception as e:
+        print(f"Error retrieving motherboard model: {e}")
+        return 'Unknown'
+
 def collect_system_info():
     system_info = {
         'hostname': socket.gethostname(),
@@ -137,7 +150,8 @@ def collect_system_info():
         'ip_and_mac_addresses': get_ip_and_mac_addresses(),
         'mounted_filesystems': get_mounted_filesystems(),
         'disk_info': get_disk_info(),
-        'gpu_info': get_gpu_info()
+        'gpu_info': get_gpu_info(),
+        'motherboard_model': get_motherboard_model()
     }
     return system_info
 
