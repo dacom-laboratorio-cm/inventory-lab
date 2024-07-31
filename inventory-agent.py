@@ -16,48 +16,37 @@ def get_kernel_version():
     return platform.release()
 
 def get_logged_in_user():
-    try:
-        return psutil.Process(os.getpid()).username()
-    except Exception as e:
-        print(f"Error getting logged in user: {e}")
-        return "Unknown"
+    return os.getlogin()
 
 def get_user_login_history():
     login_history = []
-    try:
-        with os.popen('last -F') as f:
-            for line in f:
-                parts = line.split()
-                if len(parts) >= 7:
-                    login_history.append({
-                        'user': parts[0],
-                        'tty': parts[1],
-                        'ip': parts[2],
-                        'datetime': f"{parts[3]} {parts[4]} {parts[5]} {parts[6]}"
-                    })
-        latest_logins = {}
-        for entry in login_history:
-            latest_logins[entry['user']] = entry
-    except Exception as e:
-        print(f"Error getting user login history: {e}")
-        latest_logins = {}
+    with os.popen('last -F') as f:
+        for line in f:
+            parts = line.split()
+            if len(parts) >= 7:
+                login_history.append({
+                    'user': parts[0],
+                    'tty': parts[1],
+                    'ip': parts[2],
+                    'datetime': f"{parts[3]} {parts[4]} {parts[5]} {parts[6]}"
+                })
+    latest_logins = {}
+    for entry in login_history:
+        latest_logins[entry['user']] = entry
     return list(latest_logins.values())
 
 def get_ip_and_mac_addresses():
     ip_and_mac = []
-    try:
-        for interface, addrs in psutil.net_if_addrs().items():
-            ip = None
-            mac = None
-            for addr in addrs:
-                if addr.family == socket.AF_INET:
-                    ip = addr.address
-                elif addr.family == psutil.AF_LINK:
-                    mac = addr.address
-            if ip and mac:
-                ip_and_mac.append({'interface': interface, 'ip': ip, 'mac': mac})
-    except Exception as e:
-        print(f"Error getting IP and MAC addresses: {e}")
+    for interface, addrs in psutil.net_if_addrs().items():
+        ip = None
+        mac = None
+        for addr in addrs:
+            if addr.family == socket.AF_INET:
+                ip = addr.address
+            elif addr.family == psutil.AF_LINK:
+                mac = addr.address
+        if ip and mac:
+            ip_and_mac.append({'interface': interface, 'ip': ip, 'mac': mac})
     return ip_and_mac
 
 def get_cpu_info():
@@ -68,8 +57,8 @@ def get_cpu_info():
                 if 'model name' in line:
                     cpu_info['model_name'] = line.split(':')[1].strip()
                     break
-    except Exception as e:
-        print(f"Error getting CPU info: {e}")
+    except FileNotFoundError:
+        cpu_info['model_name'] = 'Unknown'
     return cpu_info
 
 def get_memory_info():
@@ -85,20 +74,17 @@ def get_disk_info():
 
 def get_mounted_filesystems():
     filesystems = []
-    try:
-        for partition in psutil.disk_partitions():
-            if partition.fstype != 'squashfs':
-                usage = psutil.disk_usage(partition.mountpoint)
-                filesystems.append({
-                    'device': partition.device,
-                    'mountpoint': partition.mountpoint,
-                    'fstype': partition.fstype,
-                    'total': round(usage.total / (1024**3), 2),
-                    'used': round(usage.used / (1024**3), 2),
-                    'free': round(usage.free / (1024**3), 2)
-                })
-    except Exception as e:
-        print(f"Error getting mounted filesystems: {e}")
+    for partition in psutil.disk_partitions():
+        if partition.fstype != 'squashfs':
+            usage = psutil.disk_usage(partition.mountpoint)
+            filesystems.append({
+                'device': partition.device,
+                'mountpoint': partition.mountpoint,
+                'fstype': partition.fstype,
+                'total': round(usage.total / (1024**3), 2),
+                'used': round(usage.used / (1024**3), 2),
+                'free': round(usage.free / (1024**3), 2)
+            })
     return filesystems
 
 def get_gpu_info():
@@ -110,44 +96,55 @@ def get_gpu_info():
                 'gpu_id': gpu.id,
                 'name': gpu.name,
                 'driver_version': gpu.driver,
-                'memory_total': gpu.memoryTotal,
-                'memory_free': gpu.memoryFree,
-                'memory_used': gpu.memoryUsed,
-                'temperature': gpu.temperature
+                'memory_total': gpu.memoryTotal if gpu.memoryTotal else 0,
+                'memory_free': gpu.memoryFree if gpu.memoryFree else 0,
+                'memory_used': gpu.memoryUsed if gpu.memoryUsed else 0,
+                'temperature': gpu.temperature if gpu.temperature else 0
+            })
+        if gpu_info:
+            return gpu_info
+    except Exception as e:
+        print(f"Error retrieving NVIDIA GPU info: {e}")
+
+    try:
+        lspci_output = os.popen('lspci | grep -i vga').read()
+        for line in lspci_output.splitlines():
+            gpu_info.append({
+                'gpu_id': line.split()[0],
+                'name': ' '.join(line.split()[1:]),
+                'driver_version': '',
+                'memory_total': 0,
+                'memory_free': 0,
+                'memory_used': 0,
+                'temperature': 0
             })
     except Exception as e:
-        print(f"Error getting GPU info: {e}")
+        print(f"Error retrieving GPU info using lspci: {e}")
+
     return gpu_info
 
 def collect_system_info():
-    try:
-        system_info = {
-            'hostname': socket.gethostname(),
-            'linux_distribution': get_linux_distribution(),
-            'kernel_version': get_kernel_version(),
-            'logged_in_user': get_logged_in_user(),
-            'cpu_model': get_cpu_info().get('model_name', 'Unknown'),
-            'memory_total_gb': get_memory_info(),
-            'uuid1': str(uuid.uuid1()),
-            'collection_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'user_login_history': get_user_login_history(),
-            'ip_and_mac_addresses': get_ip_and_mac_addresses(),
-            'mounted_filesystems': get_mounted_filesystems(),
-            'disk_info': get_disk_info(),
-            'gpu_info': get_gpu_info()
-        }
-    except Exception as e:
-        print(f"Error collecting system info: {e}")
-        system_info = {}
+    system_info = {
+        'hostname': socket.gethostname(),
+        'linux_distribution': get_linux_distribution(),
+        'kernel_version': get_kernel_version(),
+        'logged_in_user': get_logged_in_user(),
+        'cpu_model': get_cpu_info().get('model_name', 'Unknown'),
+        'memory_total_gb': get_memory_info(),
+        'uuid1': str(uuid.uuid1()),
+        'collection_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'user_login_history': get_user_login_history(),
+        'ip_and_mac_addresses': get_ip_and_mac_addresses(),
+        'mounted_filesystems': get_mounted_filesystems(),
+        'disk_info': get_disk_info(),
+        'gpu_info': get_gpu_info()
+    }
     return system_info
 
 def save_json_to_disk(data):
-    filename = f"{data['uuid1']}.json"
-    try:
-        with open(filename, 'w') as f:
-            json.dump(data, f, indent=4)
-    except Exception as e:
-        print(f"Error saving JSON to disk: {e}")
+    filename = f"system_info_{data['uuid1']}.json"
+    with open(filename, 'w') as f:
+        json.dump(data, f, indent=4)
 
 def send_system_info():
     system_info = collect_system_info()
@@ -156,11 +153,12 @@ def send_system_info():
         response = requests.post('http://192.168.2.61:5000/api/upload', json=system_info)
         print(f"Status Code: {response.status_code}")
         print(f"Response Text: {response.text}")
-        print(response.json())
+        try:
+            print(response.json())
+        except ValueError:
+            print("Error decoding JSON response")
     except requests.exceptions.RequestException as e:
-        print(f"Request error: {e}")
-    except requests.exceptions.JSONDecodeError:
-        print("Error decoding JSON response")
+        print(f"Request failed: {e}")
 
 if __name__ == '__main__':
     send_system_info()
