@@ -8,17 +8,64 @@ import requests
 import distro
 import GPUtil
 from datetime import datetime
+import subprocess
+import sys
+
+# Função para instalar as bibliotecas necessárias
+def install_packages():
+    """
+    Instala as bibliotecas necessárias usando pip se não estiverem instaladas.
+    """
+    required_packages = [
+        'requests',  # Biblioteca para fazer requisições HTTP
+        'distro',    # Biblioteca para obter informações sobre a distribuição Linux
+        'GPUtil',    # Biblioteca para obter informações sobre GPUs NVIDIA
+        'psutil'     # Biblioteca para obter informações sobre o sistema e processos
+    ]
+    
+    for package in required_packages:
+        try:
+            __import__(package)
+        except ImportError:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
+
+# Instala as bibliotecas necessárias
+install_packages()
 
 def get_linux_distribution():
+    """
+    Obtém o nome e a versão da distribuição Linux.
+    
+    Returns:
+        tuple: Nome e versão da distribuição Linux.
+    """
     return distro.name(), distro.version()
 
 def get_kernel_version():
+    """
+    Obtém a versão do kernel Linux.
+    
+    Returns:
+        str: Versão do kernel.
+    """
     return platform.release()
 
 def get_logged_in_user():
+    """
+    Obtém o nome do usuário que está logado no sistema.
+    
+    Returns:
+        str: Nome do usuário logado.
+    """
     return os.getlogin()
 
 def get_user_login_history():
+    """
+    Obtém o histórico de logins de usuários no sistema.
+    
+    Returns:
+        list: Lista de dicionários contendo informações sobre logins de usuários.
+    """
     login_history = []
     with os.popen('last -F') as f:
         for line in f:
@@ -36,6 +83,12 @@ def get_user_login_history():
     return list(latest_logins.values())
 
 def get_ip_and_mac_addresses():
+    """
+    Obtém os endereços IP e MAC das interfaces de rede.
+    
+    Returns:
+        list: Lista de dicionários contendo informações sobre IP e MAC das interfaces.
+    """
     ip_and_mac = []
     for interface, addrs in psutil.net_if_addrs().items():
         ip = None
@@ -50,6 +103,12 @@ def get_ip_and_mac_addresses():
     return ip_and_mac
 
 def get_cpu_info():
+    """
+    Obtém informações sobre o CPU.
+    
+    Returns:
+        dict: Dicionário contendo o modelo do CPU.
+    """
     cpu_info = {}
     try:
         with open('/proc/cpuinfo') as f:
@@ -62,10 +121,22 @@ def get_cpu_info():
     return cpu_info
 
 def get_memory_info():
+    """
+    Obtém informações sobre a memória RAM total do sistema.
+    
+    Returns:
+        float: Memória total em GB.
+    """
     mem_info = psutil.virtual_memory()
     return round(mem_info.total / (1024**3), 2)
 
 def get_disk_info():
+    """
+    Obtém informações sobre o disco principal do sistema.
+    
+    Returns:
+        dict: Dicionário contendo a capacidade total e o espaço livre do disco em GB.
+    """
     disk_info = psutil.disk_usage('/')
     return {
         'total': round(disk_info.total / (1024**3), 2),
@@ -73,6 +144,12 @@ def get_disk_info():
     }
 
 def get_mounted_filesystems():
+    """
+    Obtém informações sobre os sistemas de arquivos montados.
+    
+    Returns:
+        list: Lista de dicionários contendo informações sobre os sistemas de arquivos montados.
+    """
     filesystems = []
     for partition in psutil.disk_partitions():
         if partition.fstype != 'squashfs':
@@ -88,8 +165,15 @@ def get_mounted_filesystems():
     return filesystems
 
 def get_gpu_info():
+    """
+    Obtém informações sobre as GPUs do sistema.
+    
+    Returns:
+        list: Lista de dicionários contendo informações sobre cada GPU.
+    """
     gpu_info = []
     try:
+        # Tenta obter informações sobre GPUs NVIDIA
         gpus = GPUtil.getGPUs()
         for gpu in gpus:
             gpu_info.append({
@@ -107,6 +191,7 @@ def get_gpu_info():
         print(f"Error retrieving NVIDIA GPU info: {e}")
 
     try:
+        # Se não houver GPUs NVIDIA, tenta obter informações com lspci
         lspci_output = os.popen('lspci | grep -i vga').read()
         for line in lspci_output.splitlines():
             gpu_info.append({
@@ -125,7 +210,10 @@ def get_gpu_info():
 
 def get_motherboard_model():
     """
-    Retorna o modelo da placa-mãe a partir de arquivos do sistema.
+    Obtém o modelo da placa-mãe a partir de arquivos do sistema.
+    
+    Returns:
+        str: Modelo da placa-mãe, ou 'Unknown' se não puder ser obtido.
     """
     try:
         with open('/sys/class/dmi/id/board_name', 'r') as file:
@@ -137,6 +225,12 @@ def get_motherboard_model():
         return 'Unknown'
 
 def collect_system_info():
+    """
+    Coleta todas as informações do sistema.
+    
+    Returns:
+        dict: Dicionário contendo todas as informações coletadas sobre o sistema.
+    """
     system_info = {
         'hostname': socket.gethostname(),
         'linux_distribution': get_linux_distribution(),
@@ -156,15 +250,24 @@ def collect_system_info():
     return system_info
 
 def save_json_to_disk(data):
+    """
+    Salva as informações do sistema em um arquivo JSON no disco.
+    
+    Args:
+        data (dict): Dicionário contendo as informações do sistema a serem salvas.
+    """
     filename = f"system_info_{data['uuid1']}.json"
     with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
 
 def send_system_info():
+    """
+    Coleta as informações do sistema, salva em um arquivo JSON e envia para o servidor.
+    """
     system_info = collect_system_info()
     save_json_to_disk(system_info)
     try:
-        response = requests.post('http://192.168.2.61:5000/api/upload', json=system_info)
+        response = requests.post('http://192.168.2.15:5000/api/upload', json=system_info)
         print(f"Status Code: {response.status_code}")
         print(f"Response Text: {response.text}")
         try:
