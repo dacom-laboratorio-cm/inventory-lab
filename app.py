@@ -118,18 +118,38 @@ def details(id):
 
 @app.route('/api/upload', methods=['POST'])
 def upload():
-    """
-    Rota API para upload de informações do sistema via JSON.
-    """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'message': 'No data provided'}), 400
 
-    # Salvar informações do sistema
+    # Extrai a parte do UUID após o último '-'
+    new_uuid_suffix = data['uuid1'].rsplit('-', 1)[1]
+
+    # Verifica se um registro com o mesmo hostname e UUID sufixo existe
+    existing_record = SystemInfo.query.filter_by(hostname=data['hostname']).all()
+    record_to_update = None
+    for record in existing_record:
+        if record.uuid1.rsplit('-', 1)[1] == new_uuid_suffix:
+            record_to_update = record
+            break
+
+    if record_to_update:
+        # Atualiza o registro existente
+        record_to_update.linux_distribution = json.dumps(data.get('linux_distribution'))
+        record_to_update.kernel_version = data.get('kernel_version')
+        record_to_update.logged_in_user = data.get('logged_in_user')
+        record_to_update.cpu_model = data.get('cpu_model')
+        record_to_update.memory_total_gb = data.get('memory_total_gb')
+        record_to_update.collection_datetime = data.get('collection_datetime')
+        record_to_update.motherboard_model = data.get('motherboard_model')
+        db.session.commit()
+        return jsonify({'message': 'Data updated successfully'}), 200
+
+    # Se nenhum registro correspondente for encontrado, insere um novo registro
     system_info = SystemInfo(
         hostname=data.get('hostname'),
-        linux_distribution=json.dumps(data.get('linux_distribution')),  # Convertendo para string JSON
+        linux_distribution=json.dumps(data.get('linux_distribution')),
         kernel_version=data.get('kernel_version'),
         logged_in_user=data.get('logged_in_user'),
         cpu_model=data.get('cpu_model'),
@@ -138,7 +158,7 @@ def upload():
         collection_datetime=data.get('collection_datetime'),
         motherboard_model=data['motherboard_model']
     )
-    
+
     db.session.add(system_info)
     db.session.commit()
     

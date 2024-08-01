@@ -1,185 +1,217 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalhes da Informação do Sistema</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detalhes do Sistema</title>
     <!-- Importa o CSS do Bootstrap 5.3 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Importa o CSS do Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
-        body {
-            padding-top: 20px;
-        }
-        .container {
-            max-width: 1200px;
-        }
-        dl {
-            margin: auto;
-        }
-        table {
-            margin: auto;
-        }
+      body {
+        padding-top: 20px;
+        padding-bottom: 40px;
+      }
+      .container {
+        max-width: 1200px;
+      }
+      dl {
+        margin: auto;
+      }
+      table {
+        margin: auto;
+      }
+      .back-button {
+        margin-top: 20px;
+        background-color: #343a40;
+        border-color: #343a40;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1 class="my-4 text-center">Detalhes da Informação do Sistema</h1>
-        <!-- Lista de detalhes do sistema -->
-        <dl class="row mb-4">
-            <dt class="col-sm-3">ID:</dt>
-            <dd class="col-sm-9">{{ system_info.id }}</dd>
-            <dt class="col-sm-3">Hostname:</dt>
-            <dd class="col-sm-9">{{ system_info.hostname }}</dd>
-            <dt class="col-sm-3">Distribuição Linux:</dt>
-            <dd class="col-sm-9">{{ system_info.linux_distribution }}</dd>
-            <dt class="col-sm-3">Versão do Kernel:</dt>
-            <dd class="col-sm-9">{{ system_info.kernel_version }}</dd>
-            <dt class="col-sm-3">Usuário Logado:</dt>
-            <dd class="col-sm-9">{{ system_info.logged_in_user }}</dd>
-            <dt class="col-sm-3">Placa-mãe:</dt>
-            <dd class="col-sm-9">{{ system_info.motherboard_model }}</dd>
-            <dt class="col-sm-3">Modelo da CPU:</dt>
-            <dd class="col-sm-9">{{ system_info.cpu_model }}</dd>
-            <dt class="col-sm-3">Memória Total (GB):</dt>
-            <dd class="col-sm-9">{{ system_info.memory_total_gb }}</dd>
-            <dt class="col-sm-3">UUID:</dt>
-            <dd class="col-sm-9">{{ system_info.uuid1 }}</dd>
-            <dt class="col-sm-3">Data e Hora da Coleta:</dt>
-            <dd class="col-sm-9">{{ system_info.collection_datetime }}</dd>
-        </dl>
+      <h1 class="my-4 text-center">Detalhes do sistema {{ system_info.hostname }}</h1>
+      <!-- Tabela de detalhes do sistema -->
+      <table class="table table-bordered table-striped text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Campo</th>
+            <th>Informação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ID</td>
+            <td>{{ system_info.id }}</td>
+          </tr>
+          <tr>
+            <td>Distribuição Linux</td>
+            <td>{{ system_info.linux_distribution }}</td>
+          </tr>
+          <tr>
+            <td>Versão do Kernel</td>
+            <td>{{ system_info.kernel_version }}</td>
+          </tr>
+          <tr>
+            <td>Usuário Logado</td>
+            <td>{{ system_info.logged_in_user }}</td>
+          </tr>
+          <tr>
+            <td>Placa-mãe</td>
+            <td>{{ system_info.motherboard_model }}</td>
+          </tr>
+          <tr>
+            <td>Modelo da CPU</td>
+            <td>{{ system_info.cpu_model }}</td>
+          </tr>
+          <tr>
+            <td>Memória Total (GB)</td>
+            <td>{{ system_info.memory_total_gb }}</td>
+          </tr>
+          <tr>
+            <td>UUID</td>
+            <td>{{ system_info.uuid1 }}</td>
+          </tr>
+          <tr>
+            <td>Data e Hora da Coleta</td>
+            <td>{{ system_info.collection_datetime }}</td>
+          </tr>
+        </tbody>
+      </table>
 
-        <h3 class="my-4 text-center">Histórico de Login de Usuários</h3>
-        <!-- Tabela para exibir o histórico de login de usuários -->
-        <table class="table table-bordered table-striped text-center">
-            <thead class="table-dark">
-                <tr>
-                    <th>Usuário</th>
-                    <th>TTY</th>
-                    <th>IP</th>
-                    <th>Data e Hora</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Laço para preencher a tabela com o histórico de login -->
-                {% for entry in system_info.user_login_history %}
-                <tr>
-                    <td>{{ entry.user }}</td>
-                    <td>{{ entry.tty }}</td>
-                    <td>{{ entry.ip }}</td>
-                    <td>{{ entry.datetime }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+      <h3 class="my-4 text-center">Histórico de Login de Usuários</h3>
+      <!-- Tabela para exibir o histórico de login de usuários -->
+      <table class="table table-bordered table-striped text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Usuário</th>
+            <th>TTY</th>
+            <th>IP</th>
+            <th>Data e Hora</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Laço para preencher a tabela com o histórico de login -->
+          {% for entry in system_info.user_login_history %}
+          <tr>
+            <td>{{ entry.user }}</td>
+            <td>{{ entry.tty }}</td>
+            <td>{{ entry.ip }}</td>
+            <td>{{ entry.datetime }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
-        <h3 class="my-4 text-center">Endereços IP e MAC</h3>
-        <!-- Tabela para exibir endereços IP e MAC -->
-        <table class="table table-bordered table-striped text-center">
-            <thead class="table-dark">
-                <tr>
-                    <th>Interface</th>
-                    <th>IP</th>
-                    <th>MAC</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Laço para preencher a tabela com os endereços IP e MAC -->
-                {% for entry in system_info.ip_and_mac_addresses %}
-                <tr>
-                    <td>{{ entry.interface }}</td>
-                    <td>{{ entry.ip }}</td>
-                    <td>{{ entry.mac }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+      <h3 class="my-4 text-center">Endereços IP e MAC</h3>
+      <!-- Tabela para exibir endereços IP e MAC -->
+      <table class="table table-bordered table-striped text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Interface</th>
+            <th>IP</th>
+            <th>MAC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Laço para preencher a tabela com os endereços IP e MAC -->
+          {% for entry in system_info.ip_and_mac_addresses %}
+          <tr>
+            <td>{{ entry.interface }}</td>
+            <td>{{ entry.ip }}</td>
+            <td>{{ entry.mac }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
-        <h3 class="my-4 text-center">Sistemas de Arquivos Montados</h3>
-        <!-- Tabela para exibir sistemas de arquivos montados -->
-        <table class="table table-bordered table-striped text-center">
-            <thead class="table-dark">
-                <tr>
-                    <th>Dispositivo</th>
-                    <th>Ponto de Montagem</th>
-                    <th>Tipo de Sistema de Arquivos</th>
-                    <th>Total</th>
-                    <th>Usado</th>
-                    <th>Livre</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Laço para preencher a tabela com os sistemas de arquivos montados -->
-                {% for entry in system_info.mounted_filesystems %}
-                <tr>
-                    <td>{{ entry.device }}</td>
-                    <td>{{ entry.mountpoint }}</td>
-                    <td>{{ entry.fstype }}</td>
-                    <td>{{ entry.total }}</td>
-                    <td>{{ entry.used }}</td>
-                    <td>{{ entry.free }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+      <h3 class="my-4 text-center">Sistemas de Arquivos Montados</h3>
+      <!-- Tabela para exibir sistemas de arquivos montados -->
+      <table class="table table-bordered table-striped text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Dispositivo</th>
+            <th>Ponto de Montagem</th>
+            <th>Tipo de Sistema de Arquivos</th>
+            <th>Total</th>
+            <th>Usado</th>
+            <th>Livre</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Laço para preencher a tabela com os sistemas de arquivos montados -->
+          {% for entry in system_info.mounted_filesystems %}
+          <tr>
+            <td>{{ entry.device }}</td>
+            <td>{{ entry.mountpoint }}</td>
+            <td>{{ entry.fstype }}</td>
+            <td>{{ entry.total }}</td>
+            <td>{{ entry.used }}</td>
+            <td>{{ entry.free }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
-        <h3 class="my-4 text-center">Informações do Disco</h3>
-        <!-- Tabela para exibir informações do disco -->
-        <table class="table table-bordered table-striped text-center">
-            <thead class="table-dark">
-                <tr>
-                    <th>Total</th>
-                    <th>Livre</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if system_info.disk_info %}
-                <tr>
-                    <td>{{ system_info.disk_info.total }}</td>
-                    <td>{{ system_info.disk_info.free }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="2">Nenhuma informação de disco disponível</td>
-                </tr>
-                {% endif %}
-            </tbody>
-        </table>
+      <h3 class="my-4 text-center">Informações do Disco</h3>
+      <!-- Tabela para exibir informações do disco -->
+      <table class="table table-bordered table-striped text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Total</th>
+            <th>Livre</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if system_info.disk_info %}
+          <tr>
+            <td>{{ system_info.disk_info.total }}</td>
+            <td>{{ system_info.disk_info.free }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="2">Nenhuma informação de disco disponível</td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
 
-        <h3 class="my-4 text-center">Informações da GPU</h3>
-        <!-- Tabela para exibir informações da GPU -->
-        <table class="table table-bordered table-striped text-center">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Versão do Driver</th>
-                    <th>Memória Total (MB)</th>
-                    <th>Memória Livre (MB)</th>
-                    <th>Memória Usada (MB)</th>
-                    <th>Temperatura (°C)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Laço para preencher a tabela com as informações da GPU -->
-                {% for entry in system_info.gpu_info %}
-                <tr>
-                    <td>{{ entry.gpu_id }}</td>
-                    <td>{{ entry.name }}</td>
-                    <td>{{ entry.driver_version }}</td>
-                    <td>{{ entry.memory_total }}</td>
-                    <td>{{ entry.memory_free }}</td>
-                    <td>{{ entry.memory_used }}</td>
-                    <td>{{ entry.temperature }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+      <h3 class="my-4 text-center">Informações da GPU</h3>
+      <!-- Tabela para exibir informações da GPU -->
+      <table class="table table-bordered table-striped text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Versão do Driver</th>
+            <th>Memória Total (MB)</th>
+            <th>Memória Livre (MB)</th>
+            <th>Memória Usada (MB)</th>
+            <th>Temperatura (°C)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Laço para preencher a tabela com as informações da GPU -->
+          {% for entry in system_info.gpu_info %}
+          <tr>
+            <td>{{ entry.gpu_id }}</td>
+            <td>{{ entry.name }}</td>
+            <td>{{ entry.driver_version }}</td>
+            <td>{{ entry.memory_total }}</td>
+            <td>{{ entry.memory_free }}</td>
+            <td>{{ entry.memory_used }}</td>
+            <td>{{ entry.temperature }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
-        <!-- Botão para voltar ao índice -->
-        <a class="btn btn-primary" href="{{ url_for('index') }}">Voltar ao Índice</a>
+      <!-- Botão para voltar ao índice -->
+      <a class="btn btn-dark back-button" href="{{ url_for('index') }}"> <i class="fas fa-arrow-left"></i> Voltar ao Índice </a>
     </div>
 
     <!-- Importa o JS do Bootstrap e suas dependências -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+  </body>
 </html>
