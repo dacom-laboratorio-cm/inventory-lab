@@ -1,4 +1,5 @@
 import os
+import pwd
 import platform
 import psutil
 import socket
@@ -57,7 +58,11 @@ def get_logged_in_user():
     Returns:
         str: Nome do usuário logado.
     """
-    return os.getlogin()
+    try:
+        return os.getlogin()
+    except OSError:
+        return pwd.getpwuid(os.getuid())[0]
+
 
 def get_user_login_history():
     """
