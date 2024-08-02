@@ -3,6 +3,12 @@ import socket
 import platform
 import subprocess
 import sys
+import datetime
+import requests
+import psutil
+
+# URL do arquivo dns.hosts
+DNS_HOSTS_URL = 'http://192.168.2.61/dns.hosts'
 
 # Função para instalar uma biblioteca usando pip
 def install_package(package):
@@ -28,19 +34,20 @@ except ImportError:
     install_dependencies()
     import requests
 
-# URL do arquivo dns.hosts
-DNS_HOSTS_URL = 'http://192.168.2.61/dns.hosts'
-
-# Função para obter os endereços IP e MAC das interfaces de rede
+# Função para obter os endereços IP e MAC das interfaces de rede que começam com "en"
 def get_network_interfaces():
     """
-    Obtém as interfaces de rede do sistema junto com seus endereços IP e MAC.
+    Obtém as interfaces de rede do sistema que começam com "en" junto com seus endereços IP e MAC.
     
     Retorna:
         interfaces (list): Lista de tuplas contendo (nome_da_interface, ip_da_interface, mac_da_interface).
     """
     interfaces = []
     for iface_name, iface_addrs in psutil.net_if_addrs().items():
+        # Considera apenas interfaces que começam com "en"
+        if not iface_name.startswith('en'):
+            continue
+        
         ip_addr = None
         mac_addr = None
         # Verificar cada endereço associado à interface
@@ -80,6 +87,18 @@ def rename_and_update_hosts(new_hostname):
             else:
                 file.write(line)
 
+# Função para criar um arquivo de log e registrar a data e hora atuais
+def log_change():
+    """
+    Cria um arquivo de log e registra a data e hora atuais.
+    """
+    log_file_path = '/var/log/utf-change-hostname'
+    if not os.path.exists(log_file_path):
+        # Cria e escreve no arquivo se não existir
+        with open(log_file_path, 'w') as file:
+            file.write(datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
+        print(f"Arquivo de log criado e registrado: {log_file_path}")
+
 # Função para buscar e definir o hostname com base na lista
 def set_hostname_from_list():
     """
@@ -113,7 +132,12 @@ def set_hostname_from_list():
             # Verifica se o IP corresponde a alguma interface de rede
             for iface_name, iface_ip, iface_mac in interfaces:
                 if iface_ip == ip:
+                    if socket.gethostname() == hostname:
+                        print(f"O hostname já está configurado como: {hostname}")
+                        found = True
+                        break
                     rename_and_update_hosts(hostname)
+                    log_change()  # Registra a mudança no arquivo de log
                     found = True
                     break
             if found:
@@ -125,4 +149,16 @@ def set_hostname_from_list():
         print("Nenhuma correspondência encontrada.")
 
 if __name__ == '__main__':
+    # Verifica se o script está sendo executado como root
+    if os.geteuid() != 0:
+        print("Este script precisa ser executado como root.")
+        sys.exit(1)
+
+    # Verifica se o arquivo de log já existe
+    log_file_path = '/var/log/utf-change-hostname'
+    if os.path.exists(log_file_path):
+        print("Script já foi executado.")
+        sys.exit(1)
+
+    # Executa a função principal
     set_hostname_from_list()
