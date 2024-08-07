@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 import json
+from sqlalchemy import or_, and_, not_
 
 # Cria uma aplicação Flask
 app = Flask(__name__)
@@ -10,6 +12,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///system_info.db'
 
 # Inicializa o objeto SQLAlchemy
 db = SQLAlchemy(app)
+
+# Inicializa o objeto Migrate
+migrate = Migrate(app, db)
 
 # Definição das tabelas do banco de dados usando SQLAlchemy ORM
 
@@ -27,6 +32,7 @@ class SystemInfo(db.Model):
     uuid1 = db.Column(db.String(36), unique=True, nullable=False)
     collection_datetime = db.Column(db.String(120), nullable=False)
     motherboard_model = db.Column(db.String(255))
+    patrimony = db.Column(db.String(50), nullable=True)
 
     # Relacionamentos
     user_login_history = db.relationship('UserLoginHistory', backref='system_info', lazy=True)
@@ -92,7 +98,6 @@ class GPUInfo(db.Model):
     temperature = db.Column(db.Float, nullable=False)
     system_info_id = db.Column(db.Integer, db.ForeignKey('system_info.id'), nullable=False)
 
-
 def create_tables():
     """
     Função para criar as tabelas no banco de dados.
@@ -105,7 +110,19 @@ def index():
     """
     Rota para a página inicial que lista todas as informações do sistema.
     """
-    system_infos = SystemInfo.query.all()
+    room = request.args.get('room')
+    specific_rooms = ["e003", "e006", "e007", "e100", "e101", "e102", "e103", "e104", "e105"]
+    if room:
+        if room in specific_rooms:
+            system_infos = SystemInfo.query.filter(SystemInfo.hostname.like(f'%{room}')).all()
+        elif room == "dacom":
+            system_infos = SystemInfo.query.filter(
+                and_(*[SystemInfo.hostname.notlike(f'%{r}') for r in specific_rooms])
+            ).all()
+        else:
+            system_infos = []
+    else:
+        system_infos = SystemInfo.query.all()
     return render_template('index.html', system_infos=system_infos)
 
 @app.route('/details/<int:id>')
@@ -156,7 +173,8 @@ def upload():
         memory_total_gb=data.get('memory_total_gb'),
         uuid1=data.get('uuid1'),
         collection_datetime=data.get('collection_datetime'),
-        motherboard_model=data['motherboard_model']
+        motherboard_model=data['motherboard_model'],
+        patrimony=data.get('patrimony')  # Incluído o campo patrimony
     )
 
     db.session.add(system_info)
