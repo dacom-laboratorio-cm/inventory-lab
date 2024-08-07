@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import pwd
 import platform
@@ -29,9 +31,6 @@ def install_packages():
             __import__(package)
         except ImportError:
             subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
-
-# Instala as bibliotecas necessárias
-install_packages()
 
 def get_linux_distribution():
     """
@@ -283,4 +282,6 @@ def send_system_info():
         print(f"Request failed: {e}")
 
 if __name__ == '__main__':
+    # Instala as bibliotecas necessárias
+    install_packages()
     send_system_info()
