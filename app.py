@@ -143,23 +143,24 @@ def upload():
     # Extrai a parte do UUID após o último '-'
     new_uuid_suffix = data['uuid1'].rsplit('-', 1)[1]
 
-    # Verifica se um registro com o mesmo hostname e UUID sufixo existe
-    existing_record = SystemInfo.query.filter_by(hostname=data['hostname']).all()
-    record_to_update = None
-    for record in existing_record:
-        if record.uuid1.rsplit('-', 1)[1] == new_uuid_suffix:
-            record_to_update = record
-            break
+    # Verifica se um registro com o mesmo hostname ou UUID sufixo existe
+    existing_record = SystemInfo.query.filter(
+        or_(
+            SystemInfo.hostname == data['hostname'],
+            SystemInfo.uuid1.like(f'%{new_uuid_suffix}')
+        )
+    ).first()
 
-    if record_to_update:
+    if existing_record:
         # Atualiza o registro existente
-        record_to_update.linux_distribution = json.dumps(data.get('linux_distribution'))
-        record_to_update.kernel_version = data.get('kernel_version')
-        record_to_update.logged_in_user = data.get('logged_in_user')
-        record_to_update.cpu_model = data.get('cpu_model')
-        record_to_update.memory_total_gb = data.get('memory_total_gb')
-        record_to_update.collection_datetime = data.get('collection_datetime')
-        record_to_update.motherboard_model = data.get('motherboard_model')
+        existing_record.linux_distribution = json.dumps(data.get('linux_distribution'))
+        existing_record.kernel_version = data.get('kernel_version')
+        existing_record.logged_in_user = data.get('logged_in_user')
+        existing_record.cpu_model = data.get('cpu_model')
+        existing_record.memory_total_gb = data.get('memory_total_gb')
+        existing_record.collection_datetime = data.get('collection_datetime')
+        existing_record.motherboard_model = data.get('motherboard_model')
+        existing_record.patrimony = data.get('patrimony')
         db.session.commit()
         return jsonify({'message': 'Data updated successfully'}), 200
 
@@ -173,7 +174,7 @@ def upload():
         memory_total_gb=data.get('memory_total_gb'),
         uuid1=data.get('uuid1'),
         collection_datetime=data.get('collection_datetime'),
-        motherboard_model=data['motherboard_model'],
+        motherboard_model=data.get('motherboard_model'),
         patrimony=data.get('patrimony')  # Incluído o campo patrimony
     )
 
@@ -245,6 +246,7 @@ def upload():
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': str(e)}), 500
+
 
 if __name__ == '__main__':
     create_tables()  # Garante que as tabelas são criadas
