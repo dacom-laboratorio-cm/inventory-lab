@@ -37,7 +37,7 @@ def get_linux_distribution():
     Obtém o nome e a versão da distribuição Linux.
     
     Returns:
-        tuple: Nome e versão da distribuição Linux.
+        str: Nome e versão da distribuição Linux.
     """
     name = distro.name()
     version = distro.version()
