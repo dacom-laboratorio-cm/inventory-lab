@@ -1,5 +1,5 @@
 ---
-- name: Configurar script de mudança de hostname no login
+- name: Configurar script do agente de inventário
   hosts: all
   become: yes
   tasks:

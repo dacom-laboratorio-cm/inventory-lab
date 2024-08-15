@@ -8,7 +8,7 @@ import requests
 import psutil
 
 # URL do arquivo dns.hosts
-DNS_HOSTS_URL = 'http://192.168.2.61/dns.hosts'
+DNS_HOSTS_URL = 'http://tecnico.dacom/dns.hosts'
 
 # Função para instalar uma biblioteca usando pip
 def install_package(package):

@@ -1,113 +1,130 @@
-# Projeto de Inventário de Sistema
+Aqui está o arquivo `README.md` atualizado para documentar o projeto:
 
-Este projeto consiste em um sistema de inventário para coletar e exibir informações de sistemas Linux. A aplicação é composta por dois componentes principais: um agente de inventário (`inventory-agent.py`) que coleta informações do sistema e as envia para um servidor, e um servidor web (`app.py`) que recebe esses dados, os armazena em um banco de dados e os exibe através de uma interface web.
+---
 
-## Estrutura de Diretórios
-```md
-inventory-lab
-    ├── app.py
-    ├── instance
-    │ └── system_info.db
-    ├── inventory-agent.py
-    └── templates
-    ├── details.html
-    └── index.html
+# Projeto de Automação e Inventário de computadores com SO Linux
+
+Este projeto consiste em um sistema de automação para renomeação de hostname e inventário de hardware, utilizando Python e ferramentas de configuração como Ansible.
+
+## Estrutura do Projeto
+
+```plaintext
+.
+├── app.py
+├── instance
+│   └── system_info.db
+├── LICENSE
+├── migrations
+│   ├── alembic.ini
+│   ├── env.py
+│   ├── README
+│   ├── script.py.mako
+│   └── versions
+│       └── ae9a9494ea98_make_patrimony_column_nullable.py
+├── __pycache__
+│   └── app.cpython-310.pyc
+├── README.md
+├── requirements-agent.txt
+├── requirements.txt
+├── setup-change-hostname.yml
+├── setup-inventory-agent.yml
+├── templates
+│   ├── details.html
+│   └── index.html
+├── utf-change-hostname-from-dns.py
+└── utf-inventory-agent.py
 ```
 
-### Descrição dos Arquivos
+### Descrição dos Componentes
 
-- **app.py**: Servidor web Flask que recebe os dados do inventário, armazena-os em um banco de dados SQLite e os exibe em uma interface web.
-- **instance/system_info.db**: Banco de dados SQLite que armazena as informações do sistema.
-- **inventory-agent.py**: Agente que coleta informações do sistema e as envia para o servidor.
-- **templates/details.html**: Template HTML que exibe os detalhes de um sistema específico.
-- **templates/index.html**: Template HTML que exibe uma lista de todos os sistemas coletados.
+- **app.py**: Arquivo principal que inicia o aplicativo.
+- **instance/system_info.db**: Banco de dados SQLite que armazena as informações coletadas pelo sistema.
+- **LICENSE**: Arquivo de licença do projeto.
+- **migrations/**: Diretório contendo scripts para gerenciar migrações de banco de dados usando Alembic.
+- **__pycache__/**: Diretório que armazena arquivos Python compilados.
+- **requirements-agent.txt** e **requirements.txt**: Arquivos contendo as dependências do projeto.
+- **setup-change-hostname.yml** e **setup-inventory-agent.yml**: Playbooks Ansible para configurar scripts no sistema.
+- **templates/**: Diretório com templates HTML para a interface web.
+- **utf-change-hostname-from-dns.py** e **utf-inventory-agent.py**: Scripts Python para gerenciamento de inventário e renomeação automática de hostname.
+
+## Scripts e Funcionalidades
+
+### `utf-inventory-agent.py`
+
+Este script coleta diversas informações de sistema, incluindo:
+
+- Distribuição e versão do Linux
+- Versão do kernel
+- Usuário logado
+- Histórico de logins de usuários
+- Endereços IP e MAC das interfaces de rede
+- Informações de CPU, memória, disco, sistemas de arquivos montados e GPUs
+- Modelo da placa-mãe
+
+As informações são salvas em um arquivo JSON e enviadas para um servidor de monitoramento.
+
+### `utf-change-hostname-from-dns.py`
+
+Este script renomeia automaticamente o hostname do sistema com base no endereço IP da máquina, consultando um arquivo de configuração remoto (`dns.hosts`). Ele também atualiza o arquivo `/etc/hosts` e registra as mudanças em um arquivo de log.
+
+### Playbooks Ansible
+
+#### `setup-change-hostname.yml`
+
+Este playbook configura o serviço de renomeação automática do hostname no sistema:
+
+- Copia o script `utf-change-hostname-from-dns.py` para `/usr/local/bin/`
+- Cria e habilita um serviço `systemd` para executar o script no boot do sistema
+
+#### `setup-inventory-agent.yml`
+
+Este playbook configura a execução automática do script de inventário no login de cada usuário:
+
+- Copia o script `utf-inventory-agent.py` para `/usr/local/bin/`
+- Cria um script em `/etc/profile.d/` que executa o script de inventário automaticamente no login
 
 ## Requisitos
 
-- Python 3.7+
-- Flask
-- Flask-SQLAlchemy
-- psutil
-- distro
-- requests
+Instale as dependências listadas nos arquivos `requirements-agent.txt` e `requirements.txt` utilizando pip:
 
-## Instalação
-
-1. Clone o repositório:
-    ```sh
-    git clone https://github.com/seu-usuario/inventario-py.git
-    cd inventario-py
-    ```
-
-2. Crie um ambiente virtual e instale as dependências:
-    ```sh
-    python3 -m venv .venv
-    source .venv/bin/activate
-    pip install -r requirements.txt
-    ```
-
-3. Inicie o servidor:
-    ```sh
-    python3 app.py
-    ```
-
-4. Execute o agente de inventário:
-    ```sh
-    python3 inventory-agent.py
-    ```
+```bash
+pip install -r requirements.txt
+pip install -r requirements-agent.txt
+```
 
 ## Uso
 
-### Servidor Web
+### Executar os Playbooks Ansible
 
-O servidor Flask (`app.py`) expõe as seguintes rotas:
+1. **Configurar o Agente de Inventário:**
 
-- **`/`**: Página inicial que exibe uma lista de sistemas coletados.
-- **`/details/<int:id>`**: Página que exibe os detalhes de um sistema específico.
-- **`/api/upload`**: Endpoint que recebe dados de inventário do agente e os armazena no banco de dados.
+   ```bash
+   ansible-playbook setup-inventory-agent.yml
+   ```
 
-### Agente de Inventário
+2. **Configurar o Serviço de Renomeação de Hostname:**
 
-O agente de inventário (`inventory-agent.py`) coleta informações do sistema e as envia para o servidor através do endpoint `/api/upload`.
+   ```bash
+   ansible-playbook setup-change-hostname.yml
+   ```
 
-As informações coletadas incluem:
-- Hostname
-- Distribuição Linux e versão
-- Versão do kernel
-- Usuário logado
-- Modelo da CPU
-- Memória total
-- Histórico de login de usuários
-- Endereços IP e MAC
-- Sistemas de arquivos montados
-- Informações sobre o disco
+### Executar Scripts Manualmente
 
-## Templates
+Para coletar informações do sistema e enviá-las ao servidor, execute:
 
-Os templates HTML utilizam Bootstrap 5.3 para estilização. Os dados são apresentados em tabelas centralizadas.
-
-### `index.html`
-
-Exibe uma lista de todos os sistemas coletados com informações básicas.
-
-### `details.html`
-
-Exibe detalhes completos de um sistema específico, incluindo histórico de login, endereços IP e MAC, sistemas de arquivos montados e informações sobre o disco.
-
-## Exemplo de Uso
-
-### Coletando e Enviando Dados
-
-Execute o agente de inventário no sistema que deseja coletar as informações:
-```sh
-python3 inventory-agent.py
+```bash
+python3 utf-inventory-agent.py
 ```
 
-### Visualizando Dados
-Acesse o servidor Flask no navegador em http://localhost:5000 para visualizar a lista de sistemas coletados e seus detalhes.
+Para renomear o hostname com base no IP, execute:
 
-### Contribuição
-Contribuições são bem-vindas! Sinta-se à vontade para abrir uma issue ou enviar um pull request.
+```bash
+python3 utf-change-hostname-from-dns.py
+```
 
-### Licença
-Este projeto está licenciado sob a Licença MIT. Consulte o arquivo LICENSE para obter mais informações.
+## Licença
+
+Este projeto está licenciado sob os termos do arquivo LICENSE.
+
+---
+
