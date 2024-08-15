@@ -118,9 +118,35 @@ Para renomear o hostname com base no IP, execute:
 python3 utf-change-hostname-from-dns.py
 ```
 
+## Docker
+
+O projeto pode ser executado em um contêiner Docker. Para criar e executar o contêiner, siga estas etapas:
+
+### Criar a Imagem Docker
+
+No diretório onde está localizado o `Dockerfile`, execute:
+
+```bash
+docker build -t flask-app .
+```
+
+### Executar o Contêiner Docker
+
+Após construir a imagem, inicie um contêiner com:
+
+```bash
+docker run -d -p 5000:5000 --name flask-app-container flask-app
+```
+
+### Acompanhar Logs do Contêiner
+
+Para visualizar os logs do contêiner, use:
+
+```bash
+docker logs -f flask-app-container
+```
+
 ## Licença
 
 Este projeto está licenciado sob os termos do arquivo LICENSE.
-
-
 

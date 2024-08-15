@@ -7,3 +7,4 @@ gputil>=1.4.0
 chardet>=5.2.0 
 charset-normalizer>=3.3.2 
 urllib3>=2.2.2
+flask_migrate>=4.0.7
