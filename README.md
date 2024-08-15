@@ -1,5 +1,3 @@
----
-
 # Projeto de Automação e Inventário de computadores com SO Linux
 
 Este projeto consiste em um sistema de automação para renomeação de hostname e inventário de hardware, utilizando Python e ferramentas de configuração como Ansible.
@@ -124,5 +122,5 @@ python3 utf-change-hostname-from-dns.py
 
 Este projeto está licenciado sob os termos do arquivo LICENSE.
 
----
+
 
