@@ -1,5 +1,3 @@
-Aqui está o arquivo `README.md` atualizado para documentar o projeto:
-
 ---
 
 # Projeto de Automação e Inventário de computadores com SO Linux
