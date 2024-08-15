@@ -271,7 +271,7 @@ def send_system_info():
     system_info = collect_system_info()
     save_json_to_disk(system_info)
     try:
-        response = requests.post('http://monitor.dacom:5000/api/upload', json=system_info)
+        response = requests.post('http://apps.dacom:5000/api/upload', json=system_info)
         print(f"Status Code: {response.status_code}")
         print(f"Response Text: {response.text}")
         try:

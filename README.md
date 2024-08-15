@@ -127,7 +127,7 @@ O projeto pode ser executado em um contêiner Docker. Para criar e executar o co
 No diretório onde está localizado o `Dockerfile`, execute:
 
 ```bash
-docker build -t flask-app .
+docker build -t inventory-app .
 ```
 
 ### Executar o Contêiner Docker
@@ -135,7 +135,7 @@ docker build -t flask-app .
 Após construir a imagem, inicie um contêiner com:
 
 ```bash
-docker run -d -p 5000:5000 --name flask-app-container flask-app
+docker run -d -p 5000:5000 --name inventory-app-container inventory-app
 ```
 
 ### Acompanhar Logs do Contêiner
@@ -143,7 +143,7 @@ docker run -d -p 5000:5000 --name flask-app-container flask-app
 Para visualizar os logs do contêiner, use:
 
 ```bash
-docker logs -f flask-app-container
+docker logs -f inventory-app-container
 ```
 
 ## Licença
