@@ -153,7 +153,7 @@ def upload():
 
     if existing_record:
         # Atualiza o registro existente
-        existing_record.linux_distribution = json.dumps(data.get('linux_distribution'))
+        existing_record.linux_distribution = data.get('linux_distribution')
         existing_record.kernel_version = data.get('kernel_version')
         existing_record.logged_in_user = data.get('logged_in_user')
         existing_record.cpu_model = data.get('cpu_model')
@@ -167,7 +167,7 @@ def upload():
     # Se nenhum registro correspondente for encontrado, insere um novo registro
     system_info = SystemInfo(
         hostname=data.get('hostname'),
-        linux_distribution=json.dumps(data.get('linux_distribution')),
+        linux_distribution=data.get('linux_distribution'),
         kernel_version=data.get('kernel_version'),
         logged_in_user=data.get('logged_in_user'),
         cpu_model=data.get('cpu_model'),
