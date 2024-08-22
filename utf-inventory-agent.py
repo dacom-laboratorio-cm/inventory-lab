@@ -14,6 +14,22 @@ from datetime import datetime
 import subprocess
 import sys
 
+import logging
+
+# Configuração do logging
+log_directory = os.path.expanduser('~')
+log_file = os.path.join(log_directory, '.utf-inventory-agent.log')
+
+# Cria o diretório de logs se não existir
+os.makedirs(log_directory, exist_ok=True)
+
+# Configura o logging
+logging.basicConfig(
+    filename=log_file,
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
 # Função para instalar as bibliotecas necessárias
 def install_packages():
     """
@@ -194,7 +210,7 @@ def get_gpu_info():
         if gpu_info:
             return gpu_info
     except Exception as e:
-        print(f"Error retrieving NVIDIA GPU info: {e}")
+        logging.error(f"Error retrieving NVIDIA GPU info: {e}")
 
     try:
         # Se não houver GPUs NVIDIA, tenta obter informações com lspci
@@ -210,7 +226,7 @@ def get_gpu_info():
                 'temperature': 0
             })
     except Exception as e:
-        print(f"Error retrieving GPU info using lspci: {e}")
+        logging.error(f"Error retrieving GPU info using lspci: {e}")
 
     return gpu_info
 
@@ -227,7 +243,7 @@ def get_motherboard_model():
     except FileNotFoundError:
         return 'Unknown'
     except Exception as e:
-        print(f"Error retrieving motherboard model: {e}")
+        logging.error(f"Error retrieving motherboard model: {e}")
         return 'Unknown'
 
 def collect_system_info():
@@ -271,17 +287,18 @@ def send_system_info():
     Coleta as informações do sistema, salva em um arquivo JSON e envia para o servidor.
     """
     system_info = collect_system_info()
-    save_json_to_disk(system_info)
+    #desabilitado para não salvar o arquivo no disco
+    #save_json_to_disk(system_info)
     try:
         response = requests.post('http://apps.dacom:5000/api/upload', json=system_info)
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Text: {response.text}")
+        logging.info(f"Status Code: {response.status_code}")
+        logging.info(f"Response Text: {response.text}")
         try:
-            print(response.json())
+            logging.info(response.json())
         except ValueError:
-            print("Error decoding JSON response")
+            logging.error("Error decoding JSON response")
     except requests.exceptions.RequestException as e:
-        print(f"Request failed: {e}")
+        logging.error(f"Request failed: {e}")
 
 if __name__ == '__main__':
     # Instala as bibliotecas necessárias
