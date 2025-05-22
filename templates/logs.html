@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Logs do Sistema</title>
+  </head>
+  <body>
+    <h1>Últimos Logs</h1>
+    <table border="1" cellpadding="5">
+      <tr>
+        <th>ID</th>
+        <th>Data</th>
+        <th>Host</th>
+        <th>Mensagem</th>
+        <th>Fonte</th>
+        <th>Usuário</th>
+        <th>Tipo de Log</th>
+      </tr>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.ID }}</td>
+        <td>{{ log.ReceivedAt }}</td>
+        <td>{{ log.FromHost }}</td>
+        <td>{{ log.Message[:80] }}...</td>
+        <td>{{ log.EventSource }}</td>
+        <td>{{ log.EventUser }}</td>
+        <td>{{ log.EventLogType }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>
