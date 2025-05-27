@@ -55,7 +55,7 @@
             <th>Tipo de Log</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="log-body">
           {% for log in logs %}
           <tr>
             <td>{{ log.ID }}</td>
@@ -81,50 +81,82 @@
     <!-- Ordenação de colunas -->
     <script>
       $(document).ready(function () {
+        // Ordenação por coluna
         $(".sortable").on("click", function () {
           const table = $(this).closest("table");
-          const rows = table
-            .find("tbody tr")
-            .toArray()
-            .sort(comparer($(this).index()));
+          const rows = table.find("tbody tr").toArray().sort(comparer($(this).index()));
           this.asc = !this.asc;
           if (!this.asc) {
             rows.reverse();
-            $(this)
-              .find(".fa")
-              .removeClass("fa-sort fa-sort-up")
-              .addClass("fa-sort-down");
+            $(this).find(".fa").removeClass("fa-sort fa-sort-up").addClass("fa-sort-down");
           } else {
-            $(this)
-              .find(".fa")
-              .removeClass("fa-sort fa-sort-down")
-              .addClass("fa-sort-up");
+            $(this).find(".fa").removeClass("fa-sort fa-sort-down").addClass("fa-sort-up");
           }
           table.children("tbody").append(rows);
         });
 
-        $("tbody tr").on("click", function () {
-          const shortMsg = $(this).find(".short-message");
-          const fullMsg = $(this).find(".full-message");
-
-          // Alterna visibilidade
-          shortMsg.toggleClass("d-none");
-          fullMsg.toggleClass("d-none");
-        });
-
+        // Função comparadora para ordenação
         function comparer(index) {
           return function (a, b) {
-            const valA = getCellValue(a, index),
-              valB = getCellValue(b, index);
+            const valA = getCellValue(a, index), valB = getCellValue(b, index);
             return $.isNumeric(valA) && $.isNumeric(valB)
               ? valA - valB
               : valA.localeCompare(valB);
           };
-        }
+        };
 
         function getCellValue(row, index) {
           return $(row).children("td").eq(index).text().trim();
         }
+
+        // ID da máquina vindo do Flask (usando | tojson)
+        const machineId = {{ machine_id | tojson }};
+
+        // Atualiza os logs com fetch
+        function loadLogs() {
+          fetch(`/api/logs/machine/${machineId}`)
+            .then((response) => response.json())
+            .then((data) => {
+              const tbody = document.getElementById("log-body");
+              tbody.innerHTML = "";
+              data.forEach((log) => {
+                const shortMsg = (log.message || "").slice(0, 80);
+                const row = `
+                  <tr>
+                    <td>${log.id}</td>
+                    <td>${log.received_at}</td>
+                    <td>${log.from_host}</td>
+                    <td class="log-message-cell">
+                      <div class="short-message">${shortMsg}...</div>
+                      <div class="full-message d-none">${log.message}</div>
+                    </td>
+                    <td>${log.event_source}</td>
+                    <td>${log.event_user}</td>
+                    <td>${log.event_log_type}</td>
+                  </tr>`;
+                tbody.innerHTML += row;
+              });
+
+              // Reaplica o clique nas novas linhas
+              $("tbody tr").off("click").on("click", function () {
+                const shortMsg = $(this).find(".short-message");
+                const fullMsg = $(this).find(".full-message");
+                shortMsg.toggleClass("d-none");
+                fullMsg.toggleClass("d-none");
+              });
+            });
+        }
+
+        // Atualiza a cada 1 segundo
+        setInterval(loadLogs, 1000)
+
+        // Ativa o clique na carga inicial também
+        $("tbody tr").on("click", function () {
+          const shortMsg = $(this).find(".short-message");
+          const fullMsg = $(this).find(".full-message");
+          shortMsg.toggleClass("d-none");
+          fullMsg.toggleClass("d-none");
+        });
       });
     </script>
   </body>

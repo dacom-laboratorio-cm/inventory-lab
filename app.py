@@ -292,6 +292,27 @@ def upload():
         db.session.rollback()
         return jsonify({'message': str(e)}), 500
     
+@app.route('/api/logs/machine/<int:machine_id>')
+def api_logs_by_machine(machine_id):
+    machine = SystemInfo.query.get_or_404(machine_id)
+    hostname = machine.hostname
+
+    logs = SystemEvents.query.filter(SystemEvents.FromHost == hostname)\
+        .order_by(SystemEvents.ReceivedAt.desc())\
+        .limit(100).all()
+
+    return jsonify([
+        {
+            "id": log.ID,
+            "received_at": log.ReceivedAt.isoformat(),
+            "from_host": log.FromHost,
+            "message": log.Message,
+            "event_source": log.EventSource,
+            "event_user": log.EventUser,
+            "event_log_type": log.EventLogType,
+        }
+        for log in logs
+    ])
 
 
 @app.route('/logs/machine/<int:machine_id>')
@@ -303,7 +324,7 @@ def logs_by_machine(machine_id):
         .order_by(SystemEvents.ReceivedAt.desc())\
         .limit(100).all()
 
-    return render_template('logs.html', logs=logs, hostname=hostname)
+    return render_template("logs.html", logs=logs, machine_id=machine_id, hostname=hostname)
 
 
 
