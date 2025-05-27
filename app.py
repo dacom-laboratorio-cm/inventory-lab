@@ -293,57 +293,17 @@ def upload():
         return jsonify({'message': str(e)}), 500
     
 
-@app.route('/api/logs', methods=['GET'])
-def api_get_logs():
-    """
-    Endpoint para buscar logs com filtros opcionais:
-    ?from_host=HOSTNAME
-    &start_date=2025-05-01
-    &end_date=2025-05-22
-    """
-    from_host = request.args.get('from_host')
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
 
-    query = SystemEvents.query
+@app.route('/logs/machine/<int:machine_id>')
+def logs_by_machine(machine_id):
+    machine = SystemInfo.query.get_or_404(machine_id)
+    hostname = machine.hostname
 
-    if from_host:
-        query = query.filter(SystemEvents.FromHost == from_host)
+    logs = SystemEvents.query.filter(SystemEvents.FromHost == hostname)\
+        .order_by(SystemEvents.ReceivedAt.desc())\
+        .limit(100).all()
 
-    if start_date:
-        try:
-            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
-            query = query.filter(SystemEvents.ReceivedAt >= start_dt)
-        except ValueError:
-            return jsonify({'error': 'Invalid start_date format. Use YYYY-MM-DD'}), 400
-
-    if end_date:
-        try:
-            end_dt = datetime.strptime(end_date, '%Y-%m-%d')
-            query = query.filter(SystemEvents.ReceivedAt <= end_dt)
-        except ValueError:
-            return jsonify({'error': 'Invalid end_date format. Use YYYY-MM-DD'}), 400
-
-    logs = query.order_by(SystemEvents.ReceivedAt.desc()).limit(100).all()
-
-    result = []
-    for log in logs:
-        result.append({
-            "id": log.ID,
-            "received_at": log.ReceivedAt.isoformat() if log.ReceivedAt else None,
-            "from_host": log.FromHost,
-            "message": log.Message,
-            "event_source": log.EventSource,
-            "event_user": log.EventUser,
-            "event_log_type": log.EventLogType,
-        })
-
-    return jsonify(result)
-
-@app.route('/logs')
-def get_logs_html():
-    logs = SystemEvents.query.order_by(SystemEvents.ReceivedAt.desc()).limit(100).all()
-    return render_template('logs.html', logs=logs)
+    return render_template('logs.html', logs=logs, hostname=hostname)
 
 
 
