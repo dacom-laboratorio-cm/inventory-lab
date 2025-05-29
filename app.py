@@ -323,8 +323,11 @@ def logs_by_machine(machine_id):
     logs = SystemEvents.query.filter(SystemEvents.FromHost == hostname)\
         .order_by(SystemEvents.ReceivedAt.desc())\
         .limit(100).all()
+        
+    # Captura o intervalo da URL (padrão 10s se não definido)
+    interval = int(request.args.get('interval', 10))
 
-    return render_template("logs.html", logs=logs, machine_id=machine_id, hostname=hostname)
+    return render_template("logs.html", logs=logs, machine_id=machine_id, hostname=hostname, interval=interval)
 
 
 

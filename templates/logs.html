@@ -22,6 +22,14 @@
       .container {
         max-width: 1200px;
       }
+
+      .container-header {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
       th.sortable {
         cursor: pointer;
       }
@@ -41,7 +49,20 @@
   </head>
   <body>
     <div class="container">
-      <h1 class="my-4 text-center">Últimos Logs</h1>
+
+      <div class="container-header">
+        <h1 class="my-4 text-center">Últimos Logs</h1>
+  
+        <form method="get">
+          <label>Atualizar a cada:</label>
+          <select name="interval" onchange="this.form.submit()">
+            <option value="1" {{ 'selected' if interval == 1 else '' }}>1s</option>
+            <option value="10" {{ 'selected' if interval == 10 else '' }}>10s</option>
+            <option value="30" {{ 'selected' if interval == 30 else '' }}>30s</option>
+            <option value="60" {{ 'selected' if interval == 60 else '' }}>1 min</option>
+          </select>
+        </form>
+      </div>
 
       <table class="table table-bordered table-striped text-center">
         <thead class="table-dark">
@@ -147,14 +168,19 @@
             });
         }
 
-        // Atualiza a cada 1 segundo
-        setInterval(loadLogs, 1000);
+        const refreshInterval = {{ interval | default(10) }} * 1000;
+
+        setTimeout(() => {
+          const url = new URL(window.location.href);
+          url.searchParams.set("interval", refreshInterval / 1000);
+          window.location.href = url.toString();
+        }, refreshInterval);
 
         // Ativa o clique na carga inicial também
         $("tbody tr").on("click", function () {
           const shortMsg = $(this).find(".short-message");
           const fullMsg = $(this).find(".full-message");
-          shortMsg.toggleClass("d-none");
+          shortMsg.toggleClass("d-none"); 
           fullMsg.toggleClass("d-none");
         });
       });
