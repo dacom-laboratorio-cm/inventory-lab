@@ -1,14 +1,17 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-import json
 from sqlalchemy import or_, and_, not_
+from datetime import datetime
 
 # Cria uma aplicação Flask
 app = Flask(__name__)
 
 # Configura a URI do banco de dados SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///system_info.db'
+app.config['SQLALCHEMY_BINDS'] = {
+    'logs': 'mysql+pymysql://root:root@192.168.3.21:3307/dacomlogs'
+}
 
 # Inicializa o objeto SQLAlchemy
 db = SQLAlchemy(app)
@@ -97,6 +100,48 @@ class GPUInfo(db.Model):
     memory_used = db.Column(db.Float, nullable=False)
     temperature = db.Column(db.Float, nullable=False)
     system_info_id = db.Column(db.Integer, db.ForeignKey('system_info.id'), nullable=False)
+    
+    
+class SystemEvents(db.Model):
+    __bind_key__ = 'logs'
+    __tablename__ = 'SystemEvents'
+
+    ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    CustomerID = db.Column(db.Integer)
+    ReceivedAt = db.Column(db.DateTime)
+    DeviceReportedTime = db.Column(db.DateTime)
+    Facility = db.Column(db.SmallInteger)
+    Priority = db.Column(db.SmallInteger)
+    FromHost = db.Column(db.String(60))
+    Message = db.Column(db.Text)
+    NTSeverity = db.Column(db.Integer)
+    Importance = db.Column(db.Integer)
+    EventSource = db.Column(db.String(60))
+    EventUser = db.Column(db.String(60))
+    EventCategory = db.Column(db.Integer)
+    EventID = db.Column(db.Integer)
+    EventBinaryData = db.Column(db.Text)
+    MaxAvailable = db.Column(db.Integer)
+    CurrUsage = db.Column(db.Integer)
+    MinUsage = db.Column(db.Integer)
+    MaxUsage = db.Column(db.Integer)
+    InfoUnitID = db.Column(db.Integer)
+    SysLogTag = db.Column(db.String(60))
+    EventLogType = db.Column(db.String(60))
+    GenericFileName = db.Column(db.String(60))
+    SystemID = db.Column(db.Integer)
+
+    properties = db.relationship('SystemEventsProperties', backref='event', lazy=True)
+
+
+class SystemEventsProperties(db.Model):
+    __bind_key__ = 'logs'
+    __tablename__ = 'SystemEventsProperties'
+
+    ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    SystemEventID = db.Column(db.Integer, db.ForeignKey('SystemEvents.ID', ondelete="CASCADE"))
+    ParamName = db.Column(db.String(255))
+    ParamValue = db.Column(db.Text)
 
 def create_tables():
     """
@@ -104,7 +149,7 @@ def create_tables():
     """
     with app.app_context():
         db.create_all()
-
+        
 @app.route('/')
 def index():
     """
@@ -246,6 +291,44 @@ def upload():
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': str(e)}), 500
+    
+@app.route('/api/logs/machine/<int:machine_id>')
+def api_logs_by_machine(machine_id):
+    machine = SystemInfo.query.get_or_404(machine_id)
+    hostname = machine.hostname
+
+    logs = SystemEvents.query.filter(SystemEvents.FromHost == hostname)\
+        .order_by(SystemEvents.ReceivedAt.desc())\
+        .limit(100).all()
+
+    return jsonify([
+        {
+            "id": log.ID,
+            "received_at": log.ReceivedAt.isoformat(),
+            "from_host": log.FromHost,
+            "message": log.Message,
+            "event_source": log.EventSource,
+            "event_user": log.EventUser,
+            "event_log_type": log.EventLogType,
+        }
+        for log in logs
+    ])
+
+
+@app.route('/logs/machine/<int:machine_id>')
+def logs_by_machine(machine_id):
+    machine = SystemInfo.query.get_or_404(machine_id)
+    hostname = machine.hostname
+
+    logs = SystemEvents.query.filter(SystemEvents.FromHost == hostname)\
+        .order_by(SystemEvents.ReceivedAt.desc())\
+        .limit(100).all()
+        
+    # Captura o intervalo da URL (padrão 10s se não definido)
+    interval = int(request.args.get('interval', 10))
+
+    return render_template("logs.html", logs=logs, machine_id=machine_id, hostname=hostname, interval=interval)
+
 
 
 if __name__ == '__main__':
