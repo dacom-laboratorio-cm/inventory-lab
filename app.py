@@ -10,7 +10,7 @@ app = Flask(__name__)
 # Configura a URI do banco de dados SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///system_info.db'
 app.config['SQLALCHEMY_BINDS'] = {
-    'logs': 'mysql+pymysql://root:root@192.168.3.21:3307/dacomlogs'
+    'logs': 'mysql+pymysql://root:root@localhost:3307/dacomlogs'
 }
 
 # Inicializa o objeto SQLAlchemy
