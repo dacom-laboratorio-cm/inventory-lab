@@ -8,7 +8,8 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Configura a URI do banco de dados SQLite
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///system_info.db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///system_info.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@172.16.255.209:3306/dacom'
 app.config['SQLALCHEMY_BINDS'] = {
     'logs': 'mysql+pymysql://root:root@172.16.255.209:3306/dacomlogs'
 }
