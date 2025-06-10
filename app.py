@@ -8,7 +8,6 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Configura a URI do banco de dados SQLite
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///system_info.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@172.16.255.209:3306/dacom'
 app.config['SQLALCHEMY_BINDS'] = {
     'logs': 'mysql+pymysql://root:root@172.16.255.209:3306/dacomlogs'
@@ -321,14 +320,54 @@ def logs_by_machine(machine_id):
     machine = SystemInfo.query.get_or_404(machine_id)
     hostname = machine.hostname
 
-    logs = SystemEvents.query.filter(SystemEvents.FromHost == hostname)\
-        .order_by(SystemEvents.ReceivedAt.desc())\
-        .limit(100).all()
-        
-    # Captura o intervalo da URL (padrão 10s se não definido)
-    interval = int(request.args.get('interval', 10))
+    # Pegando parâmetros de página e limite
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 12))
 
-    return render_template("logs.html", logs=logs, machine_id=machine_id, hostname=hostname, interval=interval)
+    # Pegando as datas, horas e usuário do formulário de filtro
+    start_date = request.args.get('start_date')
+    start_time = request.args.get('start_time')
+    end_date = request.args.get('end_date')
+    end_time = request.args.get('end_time')
+    user = request.args.get('user')
+
+    # Consultando o banco de dados com os filtros de data, hora e usuário
+    logs_query = SystemEvents.query.filter(SystemEvents.FromHost == hostname)
+
+    # Aplicando o filtro de data e hora de início
+    if start_date and start_time:
+        start_datetime = datetime.strptime(f"{start_date} {start_time}", '%Y-%m-%d %H:%M')
+        logs_query = logs_query.filter(SystemEvents.ReceivedAt >= start_datetime)
+
+    # Aplicando o filtro de data e hora de fim
+    if end_date and end_time:
+        end_datetime = datetime.strptime(f"{end_date} {end_time}", '%Y-%m-%d %H:%M')
+        logs_query = logs_query.filter(SystemEvents.ReceivedAt <= end_datetime)
+
+    # Aplicando o filtro de usuário
+    if user:
+        logs_query = logs_query.filter(SystemEvents.EventUser.like(f"%{user}%"))
+
+    # Paginação dos logs
+    logs = logs_query.order_by(SystemEvents.ReceivedAt.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+    # Captura o intervalo da URL (padrão 10s se não definido)
+    interval = int(request.args.get('interval', 30))
+
+    return render_template(
+        "logs.html",
+        logs=logs.items,
+        machine_id=machine_id,
+        hostname=hostname,
+        interval=interval,
+        page=page,
+        total_pages=logs.pages,
+        start_date=start_date,
+        start_time=start_time,
+        end_date=end_date,
+        end_time=end_time,
+        user=user
+    )
 
 
 

@@ -45,14 +45,24 @@
       tbody tr:hover {
         background-color: #f2f2f2;
       }
+
+      .pagination {
+        justify-content: center;
+      }
     </style>
   </head>
   <body>
     <div class="container">
+      <div class="container-header d-flex justify-content-between align-items-center">
+        <!-- Botão de Voltar -->
+        <a href="javascript:history.back()" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </a>
 
-      <div class="container-header">
-        <h1 class="my-4 text-center">Últimos Logs</h1>
-  
+        <!-- Título -->
+        <h1 class="my-4 text-center"><strong>Últimos Logs</strong> - Host: {{ hostname }}</h1>
+
+        <!-- Formulário de Intervalo -->
         <form method="get">
           <label>Atualizar a cada:</label>
           <select name="interval" onchange="this.form.submit()">
@@ -61,15 +71,59 @@
             <option value="30" {{ 'selected' if interval == 30 else '' }}>30s</option>
             <option value="60" {{ 'selected' if interval == 60 else '' }}>1 min</option>
           </select>
+          <!-- Passar os outros parâmetros -->
+          <input type="hidden" name="start_date" value="{{ start_date if start_date else '' }}">
+          <input type="hidden" name="start_time" value="{{ start_time if start_time else '' }}">
+          <input type="hidden" name="end_date" value="{{ end_date if end_date else '' }}">
+          <input type="hidden" name="end_time" value="{{ end_time if end_time else '' }}">
+          <input type="hidden" name="user" value="{{ user if user else '' }}">
         </form>
       </div>
+
+      <!-- Filtros -->
+      <form method="get" class="my-3">
+        <div class="row">
+          <div class="col-md-2">
+            <label for="start_date">Data Início:</label>
+            <input type="date" name="start_date" value="{{ start_date }}" class="form-control">
+          </div>
+          <div class="col-md-2">
+            <label for="start_time">Hora Início:</label>
+            <input type="time" name="start_time" value="{{ start_time }}" class="form-control">
+          </div>
+          <div class="col-md-2">
+            <label for="end_date">Data Fim:</label>
+            <input type="date" name="end_date" value="{{ end_date }}" class="form-control">
+          </div>
+          <div class="col-md-2">
+            <label for="end_time">Hora Fim:</label>
+            <input type="time" name="end_time" value="{{ end_time }}" class="form-control">
+          </div>
+          <div class="col-md-2">
+            <label for="user">Usuário:</label>
+            <input type="text" name="user" value="{{ user }}" class="form-control" placeholder="Filtrar por usuário">
+          </div>
+          <div class="col-md-2">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-primary form-control">
+              <i class="fas fa-filter"></i> Filtrar
+            </button>
+          </div>
+          <!-- Botão de limpar filtros -->
+          <div class="col-md-2">
+            <label>&nbsp;</label>
+            <a href="{{ url_for('logs_by_machine', machine_id=machine_id) }}" class="btn btn-secondary form-control">
+              <i class="fas fa-times"></i> Limpar Filtros
+            </a>
+          </div>
+        </div>
+      </form>
 
       <table class="table table-bordered table-striped text-center">
         <thead class="table-dark">
           <tr>
             <th class="sortable">ID <i class="fa fa-sort"></i></th>
             <th class="sortable">Data <i class="fa fa-sort"></i></th>
-            <th>Host</th>
             <th>Mensagem</th>
             <th>Fonte</th>
             <th>Usuário</th>
@@ -81,7 +135,6 @@
           <tr>
             <td>{{ log.ID }}</td>
             <td>{{ log.ReceivedAt }}</td>
-            <td>{{ log.FromHost }}</td>
             <td class="log-message-cell">
               <div class="short-message">{{ log.Message[:80] }}...</div>
               <div class="full-message d-none">{{ log.Message }}</div>
@@ -93,6 +146,41 @@
           {% endfor %}
         </tbody>
       </table>
+
+      <!-- Paginação -->
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          {% if page > 1 %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('logs_by_machine', machine_id=machine_id, page=1, interval=interval, start_date=start_date, end_date=end_date, user=user, start_time=start_time, end_time=end_time) }}">
+                <i class="fas fa-angle-double-left" style="color: black;"></i> <!-- Ícone de "Primeira" -->
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('logs_by_machine', machine_id=machine_id, page=page-1, interval=interval, start_date=start_date, end_date=end_date, user=user, start_time=start_time, end_time=end_time) }}">
+                <i class="fas fa-chevron-left" style="color: black;"></i> <!-- Ícone de "Anterior" -->
+              </a>
+            </li>
+          {% endif %}
+
+          <li class="page-item disabled">
+            <span class="page-link">Página {{ page }} de {{ total_pages }}</span> <!-- Exibe a página atual e total -->
+          </li>
+
+          {% if page < total_pages %}
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('logs_by_machine', machine_id=machine_id, page=page+1, interval=interval, start_date=start_date, end_date=end_date, user=user, start_time=start_time, end_time=end_time) }}">
+                <i class="fas fa-chevron-right" style="color: black;"></i> <!-- Ícone de "Próxima" -->
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="{{ url_for('logs_by_machine', machine_id=machine_id, page=total_pages, interval=interval, start_date=start_date, end_date=end_date, user=user, start_time=start_time, end_time=end_time) }}">
+                <i class="fas fa-angle-double-right" style="color: black;"></i> <!-- Ícone de "Última" -->
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
     </div>
 
     <!-- Bootstrap JS -->
@@ -102,6 +190,9 @@
     <!-- Ordenação de colunas -->
     <script>
       $(document).ready(function () {
+        // Defina a variável machineId com o valor correto do Flask (machine_id)
+        const machineId = {{ machine_id | tojson }};
+
         // Ordenação por coluna
         $(".sortable").on("click", function () {
           const table = $(this).closest("table");
@@ -130,23 +221,45 @@
           return $(row).children("td").eq(index).text().trim();
         }
 
-        // ID da máquina vindo do Flask (usando | tojson)
-        const machineId = {{ machine_id | tojson }};
+       function loadLogs(page = 1) {
+          console.log("is refreshing");
 
-        // Atualiza os logs com fetch
-        function loadLogs() {
-          fetch(`/api/logs/machine/${machineId}`)
+          const perPage = 10;  // Número de logs por página
+
+          // Pegando os filtros da interface
+          const startDate = document.querySelector('input[name="start_date"]').value;
+          const startTime = document.querySelector('input[name="start_time"]').value;
+          const endDate = document.querySelector('input[name="end_date"]').value;
+          const endTime = document.querySelector('input[name="end_time"]').value;
+          const user = document.querySelector('input[name="user"]').value;
+
+          // Construindo a URL com os filtros
+          let url = `/logs/machine/${machineId}?page=${page}&per_page=${perPage}`;
+
+          if (startDate && startTime) {
+            url += `&start_date=${startDate}&start_time=${startTime}`;
+          }
+          if (endDate && endTime) {
+            url += `&end_date=${endDate}&end_time=${endTime}`;
+          }
+          if (user) {
+            url += `&user=${user}`;
+          }
+
+          // Realizando a requisição
+          fetch(url)
             .then((response) => response.json())
             .then((data) => {
               const tbody = document.getElementById("log-body");
-              tbody.innerHTML = "";
-              data.forEach((log) => {
+              tbody.innerHTML = '';  // Limpa a tabela antes de adicionar os novos logs
+
+              // Adicionando os logs à tabela
+              data.logs.forEach((log) => {
                 const shortMsg = (log.message || "").slice(0, 80);
                 const row = `
                   <tr>
                     <td>${log.id}</td>
                     <td>${log.received_at}</td>
-                    <td>${log.from_host}</td>
                     <td class="log-message-cell">
                       <div class="short-message">${shortMsg}...</div>
                       <div class="full-message d-none">${log.message}</div>
@@ -158,31 +271,58 @@
                 tbody.innerHTML += row;
               });
 
-              // Reaplica o clique nas novas linhas
-              $("tbody tr").off("click").on("click", function () {
-                const shortMsg = $(this).find(".short-message");
-                const fullMsg = $(this).find(".full-message");
-                shortMsg.toggleClass("d-none");
-                fullMsg.toggleClass("d-none");
-              });
+              // Atualizando a paginação
+              updatePagination(page, data.total_pages);
             });
         }
 
-        const refreshInterval = {{ interval | default(10) }} * 1000;
+        // Função para atualizar a paginação
+        function updatePagination(currentPage, totalPages) {
+          const pagination = document.querySelector('.pagination');
+          pagination.innerHTML = '';
 
-        setTimeout(() => {
-          const url = new URL(window.location.href);
-          url.searchParams.set("interval", refreshInterval / 1000);
-          window.location.href = url.toString();
-        }, refreshInterval);
+          // Botões de navegação
+          if (currentPage > 1) {
+            pagination.innerHTML += `
+              <li class="page-item">
+                <a class="page-link" href="javascript:loadLogs(1)">
+                  <i class="fas fa-angle-double-left" style="color: black;"></i>
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="javascript:loadLogs(${currentPage - 1})">
+                  <i class="fas fa-chevron-left" style="color: black;"></i>
+                </a>
+              </li>`;
+          }
 
-        // Ativa o clique na carga inicial também
-        $("tbody tr").on("click", function () {
-          const shortMsg = $(this).find(".short-message");
-          const fullMsg = $(this).find(".full-message");
-          shortMsg.toggleClass("d-none"); 
-          fullMsg.toggleClass("d-none");
-        });
+          pagination.innerHTML += `
+            <li class="page-item disabled">
+              <span class="page-link">Página ${currentPage} de ${totalPages}</span>
+            </li>`;
+
+          if (currentPage < totalPages) {
+            pagination.innerHTML += `
+              <li class="page-item">
+                <a class="page-link" href="javascript:loadLogs(${currentPage + 1})">
+                  <i class="fas fa-chevron-right" style="color: black;"></i>
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="javascript:loadLogs(${totalPages})">
+                  <i class="fas fa-angle-double-right" style="color: black;"></i>
+                </a>
+              </li>`;
+          }
+        }
+
+        // Carregar logs pela primeira vez (com a página 1)
+        loadLogs(1);
+
+        const refreshInterval = {{ interval | default(10) }} * 1000;  // Intervalo em milissegundos
+
+        setInterval(loadLogs, refreshInterval); // Atualiza a cada 1 segundo
+
       });
     </script>
   </body>
