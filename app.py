@@ -329,7 +329,7 @@ def logs_by_machine(machine_id):
     start_time = request.args.get('start_time')
     end_date = request.args.get('end_date')
     end_time = request.args.get('end_time')
-    user = request.args.get('user')
+    user = request.args.get('user', '')
 
     # Consultando o banco de dados com os filtros de data, hora e usuário
     logs_query = SystemEvents.query.filter(SystemEvents.FromHost == hostname)
