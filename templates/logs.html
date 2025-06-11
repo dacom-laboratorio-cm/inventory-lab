@@ -193,20 +193,6 @@
         // Defina a variável machineId com o valor correto do Flask (machine_id)
         const machineId = {{ machine_id | tojson }};
 
-        // Ordenação por coluna
-        $(".sortable").on("click", function () {
-          const table = $(this).closest("table");
-          const rows = table.find("tbody tr").toArray().sort(comparer($(this).index()));
-          this.asc = !this.asc;
-          if (!this.asc) {
-            rows.reverse();
-            $(this).find(".fa").removeClass("fa-sort fa-sort-up").addClass("fa-sort-down");
-          } else {
-            $(this).find(".fa").removeClass("fa-sort fa-sort-down").addClass("fa-sort-up");
-          }
-          table.children("tbody").append(rows);
-        });
-
         // Ativa o clique na carga inicial também
         $("tbody tr").on("click", function () {
           const shortMsg = $(this).find(".short-message");
