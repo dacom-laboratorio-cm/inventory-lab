@@ -207,6 +207,14 @@
           table.children("tbody").append(rows);
         });
 
+        // Ativa o clique na carga inicial também
+        $("tbody tr").on("click", function () {
+          const shortMsg = $(this).find(".short-message");
+          const fullMsg = $(this).find(".full-message");
+          shortMsg.toggleClass("d-none"); 
+          fullMsg.toggleClass("d-none");
+        });
+
         // Função comparadora para ordenação
         function comparer(index) {
           return function (a, b) {
@@ -222,8 +230,6 @@
         }
 
        function loadLogs(page = 1) {
-          console.log("is refreshing");
-
           const perPage = 10;  // Número de logs por página
 
           // Pegando os filtros da interface
@@ -322,7 +328,6 @@
         const refreshInterval = {{ interval | default(10) }} * 1000;  // Intervalo em milissegundos
 
         setInterval(loadLogs, refreshInterval); // Atualiza a cada 1 segundo
-
       });
     </script>
   </body>
