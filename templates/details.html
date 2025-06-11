@@ -44,7 +44,14 @@
   </head>
   <body>
     <div class="container">
-      <div class="header-container">
+      <div
+        class="header-container d-flex justify-content-between align-items-center"
+      >
+        <!-- Botão para voltar ao índice -->
+        <a class="btn btn-dark back-button" href="{{ url_for('index') }}">
+          <i class="fas fa-arrow-left"></i> Voltar ao Índice
+        </a>
+
         <h1 class="my-4">Detalhes do sistema {{ system_info.hostname }}</h1>
 
         <a
@@ -227,11 +234,6 @@
           {% endfor %}
         </tbody>
       </table>
-
-      <!-- Botão para voltar ao índice -->
-      <a class="btn btn-dark back-button" href="{{ url_for('index') }}">
-        <i class="fas fa-arrow-left"></i> Voltar ao Índice
-      </a>
     </div>
 
     <!-- Importa o JS do Bootstrap e suas dependências -->
