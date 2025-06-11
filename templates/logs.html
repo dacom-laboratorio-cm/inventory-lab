@@ -29,23 +29,13 @@
         align-items: center;
         justify-content: space-between;
       }
-
-      th.sortable {
-        cursor: pointer;
-      }
-      th.sortable .fa {
-        margin-left: 10px;
-        opacity: 0.6;
-      }
       tbody tr {
         cursor: pointer;
         transition: background-color 0.2s ease;
       }
-
       tbody tr:hover {
         background-color: #f2f2f2;
       }
-
       .pagination {
         justify-content: center;
       }
@@ -122,8 +112,8 @@
       <table class="table table-bordered table-striped text-center">
         <thead class="table-dark">
           <tr>
-            <th class="sortable">ID <i class="fa fa-sort"></i></th>
-            <th class="sortable">Data <i class="fa fa-sort"></i></th>
+            <th>ID</th>
+            <th>Data</th>
             <th>Mensagem</th>
             <th>Fonte</th>
             <th>Usuário</th>
